@@ -10,10 +10,13 @@ import (
 	"slices"
 	"strings"
 
+	"github.com/DeprecatedLuar/ghtask/internal"
 	"github.com/DeprecatedLuar/ghtask/internal/commands"
 )
 
 func main() {
+	internal.HealShortcuts()
+
 	cmd, args := detectCommand()
 
 	switch cmd {
