@@ -1,7 +1,3 @@
-# Whitelist
-!README.md
-!LICENCE
-
 # Build artifacts
 *.exe
 dist/
@@ -14,6 +10,12 @@ build/
 *.exe
 dist/
 build/
+
+# Whitelist
+!README.md
+!LICENCE
+!LICENSE
+
 
 # IDE files
 .vscode/
