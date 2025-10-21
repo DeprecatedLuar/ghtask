@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/DeprecatedLuar/ghtask/internal/github"
+	"golang.org/x/term"
 )
 
 func ListIssues(args []string, verbose bool) {
@@ -127,6 +128,24 @@ func sortIssues(issues []Issue) {
 	})
 }
 
+func getTerminalWidth() int {
+	width, _, err := term.GetSize(int(os.Stdout.Fd()))
+	if err != nil {
+		return 80
+	}
+	return width
+}
+
+func truncateTitle(title string, maxWidth int) string {
+	if len(title) <= maxWidth {
+		return title
+	}
+	if maxWidth < 1 {
+		return ""
+	}
+	return title[:maxWidth-1] + ">"
+}
+
 func printIssue(issue Issue, index int, verbose bool) {
 	priority := extractPriority(issue)
 	active := isActive(issue)
@@ -139,20 +158,33 @@ func printIssue(issue Issue, index int, verbose bool) {
 		textColor = "\033[38;5;0m"
 	}
 
+	title := issue.Title
+	if !verbose {
+		termWidth := getTerminalWidth()
+		reservedSpace := 7
+
+		availableWidth := termWidth - reservedSpace
+		if availableWidth < 40 {
+			availableWidth = 40
+		}
+
+		title = truncateTitle(title, availableWidth)
+	}
+
 	if verbose {
 		fmt.Printf("%s%s#%-5d %-4s %s%s\n",
 			bgColor,
 			textColor,
 			issue.Number,
 			priority,
-			issue.Title,
+			title,
 			reset)
 	} else {
 		fmt.Printf("%s%s#%-5d %s%s\n",
 			bgColor,
 			textColor,
 			issue.Number,
-			issue.Title,
+			title,
 			reset)
 	}
 }
