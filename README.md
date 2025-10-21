@@ -1,6 +1,6 @@
 <h1 align="center">GhTask</h1>
 
-<p align="center">Lightweight CLI for managing GitHub Issues with a dstask-inspired workflow</p>
+<p align="center">Multiplayer task manager on github issues for co-developed repos</p>
 
 <p align="center">
   <a href="https://github.com/DeprecatedLuar/ghtask/stargazers">
@@ -15,11 +15,11 @@
 
 ## What makes it cool
 
-- **Priority shortcuts** - `g0`, `g1`, `g2`, `g3` for instant task capture
-- **Zero local state** - No sync issues, GitHub Issues is the truth
+- **Instant task capture** - `g0`, `g1`, `g2`, `g3` shortcuts for priority-based task creation
+- **Multiplayer by default** - Both devs see all tasks in real-time, no sync needed
+- **Visual task tracking** - Color-coded priorities (Red = urgent, Gray = later)
 - **Context-aware** - Auto-detects repo, just `cd` and go
-- **Color-coded priorities** - Red = urgent, Gray = whenever
-- **Collaborative** - Both devs see all tasks in real-time
+- **Zero local state** - GitHub Issues is the truth, no sync conflicts
 
 ---
 
@@ -27,16 +27,54 @@
 
 **Prerequisites:** [GitHub CLI](https://cli.github.com/) + `gh auth login`
 
+### Linux
+
+```bash
+# Download latest binary
+wget https://github.com/DeprecatedLuar/ghtask/releases/latest/download/gt-linux-amd64
+
+# Make executable
+chmod +x gt-linux-amd64
+
+# Move to PATH
+mv gt-linux-amd64 ~/Workspace/tools/bin/gt  # Or wherever you keep bins
+
+# Setup labels in your project
+cd ~/your-project/
+gt setup
+```
+
+### Windows
+
+```powershell
+# Download latest binary (PowerShell)
+Invoke-WebRequest -Uri "https://github.com/DeprecatedLuar/ghtask/releases/latest/download/gt-windows-amd64.exe" -OutFile "gt.exe"
+
+# Move to a directory in your PATH (adjust as needed)
+Move-Item gt.exe C:\Users\YourName\bin\gt.exe
+
+# Setup labels in your project
+cd C:\your-project
+gt setup
+```
+
+<details>
+<summary>Build from source</summary>
+
+<br>
+
 ```bash
 git clone https://github.com/DeprecatedLuar/ghtask.git
 cd ghtask
 go build -o gt
-cp gt ~/Workspace/tools/bin/  # Or wherever
+cp gt ~/Workspace/tools/bin/  # Linux/Mac
 
-# In each project, create required labels
-cd ~/your-project/
-gt setup
+# Windows
+go build -o gt.exe
+move gt.exe C:\Users\YourName\bin\
 ```
+
+</details>
 
 ---
 
