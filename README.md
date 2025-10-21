@@ -1,240 +1,147 @@
-# gt - GitHub Tasks
+<h1 align="center">GhTask</h1>
 
-Lightweight CLI tool for managing GitHub Issues with a dstask-inspired workflow.
+<p align="center">Lightweight CLI for managing GitHub Issues with a dstask-inspired workflow</p>
 
-## Features
+<p align="center">
+  <a href="https://github.com/DeprecatedLuar/ghtask/stargazers">
+    <img src="https://img.shields.io/github/stars/DeprecatedLuar/ghtask?style=for-the-badge&logo=github&color=1f6feb&logoColor=white&labelColor=black"/>
+  </a>
+  <a href="https://github.com/DeprecatedLuar/ghtask/blob/main/LICENSE">
+    <img src="https://img.shields.io/github/license/DeprecatedLuar/ghtask?style=for-the-badge&color=green&labelColor=black"/>
+  </a>
+</p>
 
-- **Fast task creation** via priority shortcuts (`g0`, `g1`, `g2`, `g3`)
-- **Visual priority feedback** with color-coded output
-- **Zero local state** - GitHub Issues is the source of truth
-- **Automatic repo detection** - works in any git project with GitHub remote
-- **Cross-platform** - Linux and Windows support
-- **Collaborative** - both users see all tasks in real-time
+---
+
+## What makes it cool
+
+- **Priority shortcuts** - `g0`, `g1`, `g2`, `g3` for instant task capture
+- **Zero local state** - No sync issues, GitHub Issues is the truth
+- **Context-aware** - Auto-detects repo, just `cd` and go
+- **Color-coded priorities** - Red = urgent, Gray = whenever
+- **Collaborative** - Both devs see all tasks in real-time
+
+---
 
 ## Installation
 
-### Prerequisites
-
-1. Install [GitHub CLI](https://cli.github.com/):
-   ```bash
-   # Check if already installed
-   gh --version
-   ```
-
-2. Authenticate with GitHub:
-   ```bash
-   gh auth login
-   ```
-
-### Build & Install
+**Prerequisites:** [GitHub CLI](https://cli.github.com/) + `gh auth login`
 
 ```bash
-# Clone the repository
-cd ~/Workspace/projects/cli/ghtasks/
+git clone https://github.com/DeprecatedLuar/ghtask.git
+cd ghtask
+go build -o gt
+cp gt ~/Workspace/tools/bin/  # Or wherever
 
-# Build the binary
-go build -o gt main.go
-
-# Install to PATH
-cp gt ~/Workspace/tools/bin/
-
-# Create symlinks for priority shortcuts
-cd ~/Workspace/tools/bin
-ln -sf gt g0
-ln -sf gt g1
-ln -sf gt g2
-ln -sf gt g3
+# In each project, create required labels
+cd ~/your-project/
+gt setup
 ```
 
-### Repository Setup
+---
 
-For each project you want to use `gt` with:
+<details>
+<summary>Quick Start</summary>
 
-```bash
-# Navigate to your project
-cd ~/projects/your-project/
-
-# Create required labels
-gh label create "inbox" --color "d4c5f9"
-gh label create "active" --color "0e8a16"
-gh label create "P0" --color "d93f0b"
-gh label create "P1" --color "ff9800"
-gh label create "P2" --color "ffeb3b"
-gh label create "P3" --color "cccccc"
-```
-
-## Usage
-
-### Quick Task Creation
+<br>
 
 ```bash
+# Create tasks with priority shortcuts
 g0 production is down!              # Critical (P0)
 g1 implement user authentication    # Important (P1)
 g2 add unit tests for login         # Normal (P2)
 g3 update documentation             # Low priority (P3)
+
+# List and filter
+gt              # All open issues
+gt p0           # Only P0 tasks
+gt active       # Only active tasks
+
+# Manage lifecycle
+gt start 234    # Mark #234 as active
+gt done 567     # Close #567
 ```
 
-### List Tasks
+</details>
 
-```bash
-gt              # List all open issues
-gt p0           # Filter by P0 priority
-gt p1           # Filter by P1 priority
-gt p2           # Filter by P2 priority
-gt p3           # Filter by P3 priority
-gt active       # Show only active tasks
-```
+<details>
+<summary>Workflow example</summary>
 
-### Manage Tasks
+<br>
 
-```bash
-gt start 234    # Mark issue #234 as active
-gt done 567     # Close issue #567
-```
-
-## How It Works
-
-### Automatic Repository Detection
-
-`gt` automatically detects your GitHub repository from the current directory's git remote:
-
-```bash
-cd ~/projects/project-one/
-g1 fix bug           # Posts to project-one's GitHub repo
-gt                   # Lists project-one's issues
-
-cd ~/projects/project-two/
-g1 add feature       # Posts to project-two's GitHub repo
-gt                   # Lists project-two's issues
-```
-
-No configuration needed - just `cd` to your project and use `gt`!
-
-### Visual Priority System
-
-Tasks are color-coded for quick scanning:
-
-- **P0 (Critical)**: Red - do this first!
-- **P1 (Important)**: Orange
-- **P2 (Normal)**: White
-- **P3 (Low)**: Gray
-
-Active tasks get a highlighted background to stand out.
-
-### Label Behavior
-
-- Tasks created with `g1 fix bug` get labels: `inbox`, `P1`
-- Running `gt start 234` adds `active` label: `inbox`, `P1`, `active`
-- Labels coexist - `inbox` remains when `active` is added
-- `gt done 234` closes the issue
-
-## Daily Workflow Example
-
-**Morning - Check tasks:**
+**Morning - Check what's on fire:**
 ```bash
 $ gt
-#234  P0  Fix auth bug               # RED - do this first!
+#234  P0  Fix auth bug               # RED - do this NOW
 #235  P1  Implement feature X        # ORANGE - important
 #567  P2  Add tests                  # WHITE (ACTIVE - highlighted)
-#891  P3  Update docs                # GRAY - whenever
+#891  P3  Update docs                # GRAY - meh
 ```
 
-**Pick a task to work on:**
+**Start working on something:**
 ```bash
 $ gt start 235
 ✓ Activated #235
 ```
 
-**Quick task capture during the day:**
+**Capture tasks as they come up:**
 ```bash
 $ g1 investigate memory leak
 Created issue #892
 
-$ g2 refactor authentication module
+$ g2 refactor auth module
 Created issue #893
 ```
 
-**Complete a task:**
+**Wrap up:**
 ```bash
 $ gt done 567
 ✓ Closed #567: Add tests
 ```
 
-## Commands
+</details>
 
-| Command | Description |
-|---------|-------------|
-| `gt` | List all open issues |
-| `gt p0/p1/p2/p3` | Filter by priority |
-| `gt active` | Show only active tasks |
-| `gt start <number>` | Mark issue as active |
-| `gt done <number>` | Close issue |
-| `g0 <title>` | Create P0 (critical) issue |
-| `g1 <title>` | Create P1 (important) issue |
-| `g2 <title>` | Create P2 (normal) issue |
-| `g3 <title>` | Create P3 (low) issue |
+<details>
+<summary>Troubleshooting</summary>
 
-## Troubleshooting
+<br>
 
 **Not in a git repository:**
 ```
 Error: not in a git repository or no origin remote
 ```
-Solution: Make sure you're in a git repository with a GitHub remote (`git remote -v`)
+→ Make sure you're in a git repo with a GitHub remote (`git remote -v`)
 
 **Remote is not GitHub:**
 ```
 Error: could not parse GitHub repo from: git@gitlab.com:user/repo.git
 ```
-Solution: `gt` only works with GitHub repositories
+→ `gt` only works with GitHub repos (sorry GitLab fans)
 
 **gh not installed:**
 ```
 Error: 'gh' command not found
 ```
-Solution: Install from https://cli.github.com/
+→ Install from https://cli.github.com/
 
 **Not authenticated:**
 ```
 Error: Not authenticated with GitHub
 ```
-Solution: Run `gh auth login`
+→ Run `gh auth login`
 
-## Environment Variables (Optional)
-
+**Environment variables (optional):**
 ```bash
-# Override git-detected repo (rarely needed)
-export GT_REPO="owner/repo-name"
-
-# Use different GitHub account
-export GITHUB_TOKEN="ghp_..."
+export GT_REPO="owner/repo"        # Override auto-detected repo
+export GITHUB_TOKEN="ghp_..."      # Use different GitHub account
 ```
 
-## Development
+</details>
 
-### Building from Source
+---
 
-```bash
-go build -o gt main.go
-```
-
-### Running Tests
-
-```bash
-# Test in a git repository
-cd ~/projects/some-github-project/
-gt help
-gt
-```
-
-## Philosophy
-
-- **Simple**: Fast task capture, no complex workflows
-- **Zero local state**: GitHub Issues is always the source of truth
-- **Visual**: Color-coded priorities for quick scanning
-- **Collaborative**: Both users see all tasks in real-time
-- **Context-aware**: Automatically uses the right repo based on current directory
-
-## License
-
-MIT
+<p align="center">
+  <a href="https://github.com/DeprecatedLuar/ghtask/issues">
+    <img src="https://img.shields.io/badge/Found%20a%20bug%3F-Report%20it!-red?style=for-the-badge&logo=github&logoColor=white&labelColor=black"/>
+  </a>
+</p>
