@@ -78,6 +78,24 @@ move gt.exe C:\Users\YourName\bin\
 
 ---
 
+## Commands
+
+| Command | Description |
+|---------|-------------|
+| `gt` | List all open issues |
+| `gt -v` | List all issues with priority labels (verbose) |
+| `gt p0/p1/p2/p3` | Filter by priority |
+| `gt active` | Show only active tasks |
+| `gt start <number>` | Mark issue as active |
+| `gt done <number>` | Close issue |
+| `gt rm <number>` | Delete issue (permanent) |
+| `gt setup` | Create required labels in repo |
+| `g0 <title>` | Create P0 (critical) issue |
+| `g1 <title>` | Create P1 (important) issue |
+| `g2 <title>` | Create P2 (normal) issue |
+| `g3 <title>` | Create P3 (low) issue |
+| `gt <title>` | Create P2 (normal) issue (default) |
+
 <details>
 <summary>Quick Start</summary>
 
