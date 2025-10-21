@@ -159,7 +159,9 @@ func printIssue(issue Issue, index int, verbose bool) {
 	}
 
 	title := issue.Title
-	if !verbose {
+	isTerminal := term.IsTerminal(int(os.Stdout.Fd()))
+
+	if !verbose && isTerminal {
 		termWidth := getTerminalWidth()
 		reservedSpace := 7
 
@@ -171,22 +173,23 @@ func printIssue(issue Issue, index int, verbose bool) {
 		title = truncateTitle(title, availableWidth)
 	}
 
+	var content string
 	if verbose {
-		fmt.Printf("%s%s#%-5d %-4s %s%s\n",
-			bgColor,
-			textColor,
-			issue.Number,
-			priority,
-			title,
-			reset)
+		content = fmt.Sprintf("#%-5d %-4s %s", issue.Number, priority, title)
 	} else {
-		fmt.Printf("%s%s#%-5d %s%s\n",
-			bgColor,
-			textColor,
-			issue.Number,
-			title,
-			reset)
+		content = fmt.Sprintf("#%-5d %s", issue.Number, title)
 	}
+
+	padding := ""
+	if isTerminal {
+		termWidth := getTerminalWidth()
+		contentLen := len(content)
+		if contentLen < termWidth {
+			padding = strings.Repeat(" ", termWidth-contentLen)
+		}
+	}
+
+	fmt.Printf("%s%s%s%s%s\n", bgColor, textColor, content, padding, reset)
 }
 
 func getPriorityColor(priority string) string {
