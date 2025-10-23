@@ -36,8 +36,9 @@ wget https://github.com/DeprecatedLuar/ghtask/releases/latest/download/gt-linux-
 # Make executable
 chmod +x gt-linux-amd64
 
-# Move to PATH
-mv gt-linux-amd64 ~/Workspace/tools/bin/gt  # Or wherever you keep bins
+# Move to PATH (create directory if needed)
+mkdir -p ~/.local/bin
+mv gt-linux-amd64 ~/.local/bin/gt
 
 # Setup labels in your project
 cd ~/your-project/
@@ -67,7 +68,10 @@ gt setup
 git clone https://github.com/DeprecatedLuar/ghtask.git
 cd ghtask
 go build -o gt
-cp gt ~/Workspace/tools/bin/  # Linux/Mac
+
+# Linux/Mac
+mkdir -p ~/.local/bin
+cp gt ~/.local/bin/
 
 # Windows
 go build -o gt.exe
