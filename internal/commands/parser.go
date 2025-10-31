@@ -84,13 +84,13 @@ func ParseEditFlag(args []string) (bool, string, []string, error) {
 // ParsePriorityFromCommand converts command name to priority label
 func ParsePriorityFromCommand(cmd string) string {
 	switch cmd {
-	case "g0":
+	case "gt0":
 		return "P0"
-	case "g1":
+	case "gt1":
 		return "P1"
-	case "g2":
+	case "gt2":
 		return "P2"
-	case "g3":
+	case "gt3":
 		return "P3"
 	default:
 		return "P2" // default priority

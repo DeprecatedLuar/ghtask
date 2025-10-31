@@ -22,16 +22,16 @@ jobs:
     - name: Build binaries
       run: |
         # Linux
-        GOOS=linux GOARCH=amd64 go build -o gt-linux-amd64
+        GOOS=linux GOARCH=amd64 go build -o ghtask-linux-amd64
 
         # Windows
-        GOOS=windows GOARCH=amd64 go build -o gt-windows-amd64.exe
+        GOOS=windows GOARCH=amd64 go build -o ghtask-windows-amd64.exe
 
     - name: Create Release
       uses: softprops/action-gh-release@v1
       with:
         files: |
-          gt-linux-amd64
-          gt-windows-amd64.exe
+          ghtask-linux-amd64
+          ghtask-windows-amd64.exe
         generate_release_notes: true
         prerelease: ${{ contains(github.ref, 'beta') || contains(github.ref, 'alpha') || contains(github.ref, 'rc') }}

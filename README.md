@@ -15,11 +15,12 @@
 
 ## What makes it cool
 
-- **Instant task capture** - `g0`, `g1`, `g2`, `g3` shortcuts for priority-based task creation
+- **Instant task capture** - `gt0`, `gt1`, `gt2`, `gt3` shortcuts for priority-based task creation
 - **Multiplayer by default** - Both devs see all tasks in real-time, no sync needed
 - **Visual task tracking** - Color-coded priorities (Red = urgent, Gray = later)
 - **Context-aware** - Auto-detects repo, just `cd` and go
 - **Zero local state** - GitHub Issues is the truth, no sync conflicts
+- **Self-healing shortcuts** - Automatically creates `gt` alias and priority shortcuts on first run
 
 ---
 
@@ -31,16 +32,14 @@
 
 ```bash
 # Download latest binary
-wget https://github.com/DeprecatedLuar/ghtask/releases/latest/download/gt-linux-amd64
+wget https://github.com/DeprecatedLuar/ghtask/releases/latest/download/ghtask-linux-amd64
 
-# Make executable
-chmod +x gt-linux-amd64
-
-# Move to PATH (create directory if needed)
+# Make executable and move to PATH
+chmod +x ghtask-linux-amd64
 mkdir -p ~/.local/bin
-mv gt-linux-amd64 ~/.local/bin/gt
+mv ghtask-linux-amd64 ~/.local/bin/ghtask
 
-# Setup labels in your project
+# Shortcuts (gt, gt0-gt3) auto-create on first run
 cd ~/your-project/
 gt setup
 ```
@@ -49,12 +48,12 @@ gt setup
 
 ```powershell
 # Download latest binary (PowerShell)
-Invoke-WebRequest -Uri "https://github.com/DeprecatedLuar/ghtask/releases/latest/download/gt-windows-amd64.exe" -OutFile "gt.exe"
+Invoke-WebRequest -Uri "https://github.com/DeprecatedLuar/ghtask/releases/latest/download/ghtask-windows-amd64.exe" -OutFile "ghtask.exe"
 
 # Move to a directory in your PATH (adjust as needed)
-Move-Item gt.exe C:\Users\YourName\bin\gt.exe
+Move-Item ghtask.exe C:\Users\YourName\bin\ghtask.exe
 
-# Setup labels in your project
+# Shortcuts (gt.bat, gt0.bat-gt3.bat) auto-create on first run
 cd C:\your-project
 gt setup
 ```
@@ -67,15 +66,17 @@ gt setup
 ```bash
 git clone https://github.com/DeprecatedLuar/ghtask.git
 cd ghtask
-go build -o gt
 
-# Linux/Mac
+# Build and install
+go build -o ghtask
 mkdir -p ~/.local/bin
-cp gt ~/.local/bin/
+cp ghtask ~/.local/bin/
 
 # Windows
-go build -o gt.exe
-move gt.exe C:\Users\YourName\bin\
+go build -o ghtask.exe
+move ghtask.exe C:\Users\YourName\bin\
+
+# Shortcuts auto-create on first run
 ```
 
 </details>
@@ -88,17 +89,22 @@ move gt.exe C:\Users\YourName\bin\
 |---------|-------------|
 | `gt` | List all open issues |
 | `gt -v` | List all issues with priority labels (verbose) |
+| `gt <number>` | View issue details (colored title + body) |
+| `gt <number> -e body` | Edit issue body in $EDITOR |
+| `gt <number> -e title` | Edit issue title in $EDITOR |
+| `gt <title>` | Create P2 (normal) issue (default) |
 | `gt p0/p1/p2/p3` | Filter by priority |
 | `gt active` | Show only active tasks |
 | `gt start <number>` | Mark issue as active |
+| `gt pause <number>` | Remove active label (keep open) |
 | `gt done <number>` | Close issue |
 | `gt rm <number>` | Delete issue (permanent) |
 | `gt setup` | Create required labels in repo |
-| `g0 <title>` | Create P0 (critical) issue |
-| `g1 <title>` | Create P1 (important) issue |
-| `g2 <title>` | Create P2 (normal) issue |
-| `g3 <title>` | Create P3 (low) issue |
-| `gt <title>` | Create P2 (normal) issue (default) |
+| `gt0 <title>` | Create P0 (critical) issue |
+| `gt1 <title>` | Create P1 (important) issue |
+| `gt2 <title>` | Create P2 (normal) issue |
+| `gt3 <title>` | Create P3 (low) issue |
+| `gt0-gt3 <title> --body` | Create with priority + open editor for body |
 
 <details>
 <summary>Quick Start</summary>
@@ -107,18 +113,28 @@ move gt.exe C:\Users\YourName\bin\
 
 ```bash
 # Create tasks with priority shortcuts
-g0 production is down!              # Critical (P0)
-g1 implement user authentication    # Important (P1)
-g2 add unit tests for login         # Normal (P2)
-g3 update documentation             # Low priority (P3)
+gt0 production is down!              # Critical (P0)
+gt1 implement user authentication    # Important (P1)
+gt2 add unit tests for login         # Normal (P2)
+gt3 update documentation             # Low priority (P3)
+
+# Create with body/description
+gt1 fix auth bug --body              # Opens $EDITOR for description
+
+# View and edit
+gt 123                               # View issue #123
+gt 123 -e body                       # Edit body in $EDITOR
+gt 123 -e title                      # Edit title in $EDITOR
 
 # List and filter
 gt              # All open issues
+gt -v           # With priority labels
 gt p0           # Only P0 tasks
 gt active       # Only active tasks
 
 # Manage lifecycle
 gt start 234    # Mark #234 as active
+gt pause 234    # Remove active (keep open)
 gt done 567     # Close #567
 ```
 
@@ -146,16 +162,23 @@ $ gt start 235
 
 **Capture tasks as they come up:**
 ```bash
-$ g1 investigate memory leak
+$ gt1 investigate memory leak
 Created issue #892
 
-$ g2 refactor auth module
+$ gt2 refactor auth module --body  # Opens editor for details
 Created issue #893
+```
+
+**View and edit:**
+```bash
+$ gt 234                # View details
+$ gt 234 -e body        # Edit in $EDITOR
 ```
 
 **Wrap up:**
 ```bash
-$ gt done 567
+$ gt pause 235          # Stop working, keep open
+$ gt done 567           # Close when finished
 ✓ Closed #567: Add tests
 ```
 

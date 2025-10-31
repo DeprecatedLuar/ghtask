@@ -19,10 +19,10 @@ USAGE:
   gt rm <number>        Delete issue (permanent)
   gt setup              Create required labels in repo
 
-  g0 <title> [--body]   Create P0 (critical) issue
-  g1 <title> [--body]   Create P1 (important) issue
-  g2 <title> [--body]   Create P2 (normal) issue
-  g3 <title> [--body]   Create P3 (low) issue
+  gt0 <title> [--body]  Create P0 (critical) issue
+  gt1 <title> [--body]  Create P1 (important) issue
+  gt2 <title> [--body]  Create P2 (normal) issue
+  gt3 <title> [--body]  Create P3 (low) issue
 
 FLAGS:
   -v, --verbose         Show priority labels in output
@@ -37,8 +37,8 @@ EXAMPLES:
   gt 123 -e body                # Edit issue #123 body in $EDITOR
   gt 123 -e title               # Edit issue #123 title in $EDITOR
   gt refactor legacy code       # Create default P2 task
-  g1 fix authentication bug     # Create P1 task (title only)
-  g1 fix auth bug --body        # Create P1 task, open editor for body
+  gt1 fix authentication bug    # Create P1 task (title only)
+  gt1 fix auth bug --body       # Create P1 task, open editor for body
   gt p1 -v                      # List P1 tasks with priority labels
   gt start 234                  # Mark #234 as active
   gt pause 234                  # Remove active (keep open)
@@ -46,7 +46,7 @@ EXAMPLES:
   gt rm 890                     # Delete #890 (permanent)
 
 WORKFLOW:
-  g2 <title>    - Creates a P2 issue
+  gt2 <title>   - Creates a P2 issue
   gt p2         - Lists existing P2 issues
 
 SETUP:

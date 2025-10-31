@@ -1,6 +1,6 @@
 // Package main implements gt (GitHub Tasks), a lightweight CLI tool for managing
 // GitHub Issues with a dstask-inspired workflow. It provides fast task creation
-// via priority shortcuts (g0-g3) and uses GitHub Issues as the single source of truth.
+// via priority shortcuts (gt0-gt3) and uses GitHub Issues as the single source of truth.
 package main
 
 import (
@@ -21,7 +21,7 @@ func main() {
 	cmd, args := detectCommand()
 
 	switch cmd {
-	case "g0", "g1", "g2", "g3", "create-default":
+	case "gt0", "gt1", "gt2", "gt3", "create-default":
 		openEditor, remainingArgs := commands.ParseBodyFlag(args)
 		commands.CreateIssue(remainingArgs, cmd, openEditor)
 	case "list", "":
@@ -57,13 +57,13 @@ func main() {
 func detectCommand() (string, []string) {
 	binary := filepath.Base(os.Args[0])
 
-	if binary == "g0" || binary == "g1" || binary == "g2" || binary == "g3" {
+	if binary == "gt0" || binary == "gt1" || binary == "gt2" || binary == "gt3" {
 		return binary, os.Args[1:]
 	}
 
 	if len(os.Args) > 1 {
 		firstArg := os.Args[1]
-		if firstArg == "g0" || firstArg == "g1" || firstArg == "g2" || firstArg == "g3" {
+		if firstArg == "gt0" || firstArg == "gt1" || firstArg == "gt2" || firstArg == "gt3" {
 			return firstArg, os.Args[2:]
 		}
 	}

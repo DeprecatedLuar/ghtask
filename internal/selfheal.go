@@ -8,7 +8,7 @@ import (
 	"runtime"
 )
 
-// HealShortcuts creates priority shortcuts (g0-g3) next to the gt binary.
+// HealShortcuts creates gt alias and priority shortcuts (gt0-gt3) next to the ghtask binary.
 // On Linux/Mac: creates symlinks
 // On Windows: creates .bat files
 // Silently succeeds if shortcuts already exist.
@@ -21,6 +21,11 @@ func HealShortcuts() {
 	binaryDir := filepath.Dir(binaryPath)
 	binaryName := filepath.Base(binaryPath)
 
+	// Only run if we're the main binary (ghtask), not if called via shortcuts
+	if binaryName != "ghtask" && binaryName != "ghtask.exe" {
+		return
+	}
+
 	if runtime.GOOS == "windows" {
 		createWindowsBatch(binaryDir, binaryName)
 	} else {
@@ -29,7 +34,7 @@ func HealShortcuts() {
 }
 
 func createLinuxSymlinks(dir, binaryName string) {
-	shortcuts := []string{"g0", "g1", "g2", "g3"}
+	shortcuts := []string{"gt", "gt0", "gt1", "gt2", "gt3"}
 
 	for _, shortcut := range shortcuts {
 		linkPath := filepath.Join(dir, shortcut)
@@ -43,7 +48,7 @@ func createLinuxSymlinks(dir, binaryName string) {
 }
 
 func createWindowsBatch(dir, binaryName string) {
-	shortcuts := []string{"g0", "g1", "g2", "g3"}
+	shortcuts := []string{"gt", "gt0", "gt1", "gt2", "gt3"}
 
 	for _, shortcut := range shortcuts {
 		batPath := filepath.Join(dir, shortcut+".bat")
