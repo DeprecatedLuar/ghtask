@@ -8,19 +8,13 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/DeprecatedLuar/ghtask/internal"
 	"github.com/DeprecatedLuar/ghtask/internal/github"
 	"golang.org/x/term"
 )
 
-func ListIssues(args []string, verbose bool) {
-	filters := []string{}
-	for _, arg := range args {
-		if arg == "-v" || arg == "--verbose" {
-			verbose = true
-		} else {
-			filters = append(filters, arg)
-		}
-	}
+func ListIssues(args []string) {
+	verbose, filters := ParseVerboseFlag(args)
 
 	repo, err := github.GetRepoFromGit()
 	if err != nil {
@@ -41,7 +35,7 @@ func ListIssues(args []string, verbose bool) {
 		os.Exit(1)
 	}
 
-	var issues []Issue
+	var issues []internal.Issue
 	if err := json.Unmarshal(output, &issues); err != nil {
 		fmt.Fprintf(os.Stderr, "Error parsing issues: %v\n", err)
 		os.Exit(1)
@@ -60,12 +54,12 @@ func ListIssues(args []string, verbose bool) {
 	}
 }
 
-func filterIssues(issues []Issue, filters []string) []Issue {
+func filterIssues(issues []internal.Issue, filters []string) []internal.Issue {
 	if len(filters) == 0 {
 		return issues
 	}
 
-	var filtered []Issue
+	var filtered []internal.Issue
 	for _, issue := range issues {
 		if matchesFilters(issue, filters) {
 			filtered = append(filtered, issue)
@@ -74,7 +68,7 @@ func filterIssues(issues []Issue, filters []string) []Issue {
 	return filtered
 }
 
-func matchesFilters(issue Issue, filters []string) bool {
+func matchesFilters(issue internal.Issue, filters []string) bool {
 	for _, filter := range filters {
 		filter = strings.ToLower(filter)
 
@@ -92,7 +86,7 @@ func matchesFilters(issue Issue, filters []string) bool {
 	return true
 }
 
-func hasLabel(issue Issue, labelName string) bool {
+func hasLabel(issue internal.Issue, labelName string) bool {
 	labelName = strings.ToLower(labelName)
 	for _, label := range issue.Labels {
 		if strings.ToLower(label.Name) == labelName {
@@ -102,23 +96,14 @@ func hasLabel(issue Issue, labelName string) bool {
 	return false
 }
 
-func extractPriority(issue Issue) string {
-	for _, label := range issue.Labels {
-		if strings.HasPrefix(label.Name, "P") && len(label.Name) == 2 {
-			return label.Name
-		}
-	}
-	return "P2"
-}
-
-func isActive(issue Issue) bool {
+func isActive(issue internal.Issue) bool {
 	return hasLabel(issue, "active")
 }
 
-func sortIssues(issues []Issue) {
+func sortIssues(issues []internal.Issue) {
 	sort.Slice(issues, func(i, j int) bool {
-		priI := extractPriority(issues[i])
-		priJ := extractPriority(issues[j])
+		priI := internal.ExtractPriority(issues[i])
+		priJ := internal.ExtractPriority(issues[j])
 
 		if priI != priJ {
 			return priI < priJ
@@ -146,12 +131,12 @@ func truncateTitle(title string, maxWidth int) string {
 	return title[:maxWidth-1] + ">"
 }
 
-func printIssue(issue Issue, index int, verbose bool) {
-	priority := extractPriority(issue)
+func printIssue(issue internal.Issue, index int, verbose bool) {
+	priority := internal.ExtractPriority(issue)
 	active := isActive(issue)
 
-	textColor := getPriorityColor(priority)
-	bgColor := getBackgroundColor(index, active)
+	textColor := internal.GetPriorityColor(priority)
+	bgColor := internal.GetBackgroundColor(index, active)
 	reset := "\033[0m"
 
 	if active {
@@ -175,45 +160,64 @@ func printIssue(issue Issue, index int, verbose bool) {
 
 	var content string
 	if verbose {
-		content = fmt.Sprintf("#%-5d %-4s %s", issue.Number, priority, title)
+		paddedNum := fmt.Sprintf("%03d", issue.Number)
+		grayLeadingZeros := formatLeadingZeros(paddedNum, textColor)
+		content = fmt.Sprintf("[%s-%s]   %s", grayLeadingZeros, priority, title)
 	} else {
-		content = fmt.Sprintf("#%-5d %s", issue.Number, title)
+		content = fmt.Sprintf("%-5d %s", issue.Number, title)
 	}
 
 	padding := ""
 	if isTerminal {
 		termWidth := getTerminalWidth()
-		contentLen := len(content)
-		if contentLen < termWidth {
-			padding = strings.Repeat(" ", termWidth-contentLen)
+		visibleLen := getVisibleLength(content)
+		if visibleLen < termWidth {
+			padding = strings.Repeat(" ", termWidth-visibleLen)
 		}
 	}
 
 	fmt.Printf("%s%s%s%s%s\n", bgColor, textColor, content, padding, reset)
 }
 
-func getPriorityColor(priority string) string {
-	switch priority {
-	case "P0":
-		return "\033[38;5;196m"
-	case "P1":
-		return "\033[38;5;208m"
-	case "P2":
-		return "\033[38;5;250m"
-	case "P3":
-		return "\033[38;5;240m"
-	default:
-		return "\033[38;5;250m"
+func getVisibleLength(s string) int {
+	visible := 0
+	inEscape := false
+
+	for i := 0; i < len(s); i++ {
+		if s[i] == '\033' {
+			inEscape = true
+		} else if inEscape && s[i] == 'm' {
+			inEscape = false
+		} else if !inEscape {
+			visible++
+		}
 	}
+
+	return visible
 }
 
-func getBackgroundColor(index int, active bool) string {
-	if active {
-		return "\033[48;5;250m"
+func formatLeadingZeros(paddedNum string, mainColor string) string {
+	gray := "\033[38;5;235m"
+
+	isTerminal := term.IsTerminal(int(os.Stdout.Fd()))
+	if !isTerminal {
+		return paddedNum
 	}
 
-	if index%2 == 0 {
-		return "\033[48;5;233m"
+	firstNonZero := 0
+	for i, ch := range paddedNum {
+		if ch != '0' {
+			firstNonZero = i
+			break
+		}
 	}
-	return "\033[48;5;232m"
+
+	if firstNonZero == 0 {
+		return paddedNum
+	}
+
+	leadingZeros := paddedNum[:firstNonZero]
+	significantDigits := paddedNum[firstNonZero:]
+
+	return gray + leadingZeros + mainColor + significantDigits
 }

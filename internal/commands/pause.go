@@ -8,8 +8,8 @@ import (
 	"github.com/DeprecatedLuar/ghtask/internal/github"
 )
 
-func StartIssue(args []string) {
-	issueNum, err := ParseIssueNumber(args, "start")
+func PauseIssue(args []string) {
+	issueNum, err := ParseIssueNumber(args, "pause")
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "Error:", err)
 		os.Exit(1)
@@ -24,14 +24,14 @@ func StartIssue(args []string) {
 
 	cmd := exec.Command("gh", "issue", "edit", issueNum,
 		"--repo", repo,
-		"--add-label", "active")
+		"--remove-label", "active")
 
 	output, err := cmd.CombinedOutput()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error activating issue: %v\n", err)
+		fmt.Fprintf(os.Stderr, "Error pausing issue: %v\n", err)
 		fmt.Fprintf(os.Stderr, "%s\n", output)
 		os.Exit(1)
 	}
 
-	fmt.Printf("✓ Activated #%s\n", issueNum)
+	fmt.Printf("✓ Paused #%s\n", issueNum)
 }

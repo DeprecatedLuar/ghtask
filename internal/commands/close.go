@@ -9,7 +9,13 @@ import (
 	"github.com/DeprecatedLuar/ghtask/internal/github"
 )
 
-func CloseIssue(issueNum string) {
+func CloseIssue(args []string) {
+	issueNum, err := ParseIssueNumber(args, "done")
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "Error:", err)
+		os.Exit(1)
+	}
+
 	repo, err := github.GetRepoFromGit()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
