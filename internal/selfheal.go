@@ -8,6 +8,11 @@ import (
 	"runtime"
 )
 
+const (
+	// File permissions for created shortcuts
+	shortcutFilePerms = 0755 // Executable permissions for batch files and symlinks
+)
+
 // HealShortcuts creates gt alias and priority shortcuts (gt0-gt3) next to the ghtask binary.
 // On Linux/Mac: creates symlinks
 // On Windows: creates .bat files
@@ -58,6 +63,6 @@ func createWindowsBatch(dir, binaryName string) {
 		}
 
 		content := "@echo off\r\n" + binaryName + " " + shortcut + " %*\r\n"
-		_ = os.WriteFile(batPath, []byte(content), 0755)
+		_ = os.WriteFile(batPath, []byte(content), shortcutFilePerms)
 	}
 }

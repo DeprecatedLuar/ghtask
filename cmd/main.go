@@ -22,8 +22,8 @@ func main() {
 
 	switch cmd {
 	case "gt0", "gt1", "gt2", "gt3", "create-default":
-		openEditor, remainingArgs := commands.ParseBodyFlag(args)
-		commands.CreateIssue(remainingArgs, cmd, openEditor)
+		hasBody, bodyValue, remainingArgs := commands.ParseBodyFlag(args)
+		commands.CreateIssue(remainingArgs, cmd, hasBody, bodyValue)
 	case "list", "":
 		commands.ListIssues(args)
 	case "p0", "p1", "p2", "p3":

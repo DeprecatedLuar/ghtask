@@ -11,7 +11,7 @@ import (
 )
 
 func EditIssue(args []string) {
-	hasEdit, field, remainingArgs, err := ParseEditFlag(args)
+	hasEdit, field, inlineValue, remainingArgs, err := ParseEditFlag(args)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
@@ -19,7 +19,7 @@ func EditIssue(args []string) {
 
 	if !hasEdit {
 		fmt.Fprintln(os.Stderr, "Error: -e flag required")
-		fmt.Fprintln(os.Stderr, "Usage: gt <issue-number> -e <body|title>")
+		fmt.Fprintln(os.Stderr, "Usage: gt <issue-number> -e <body|title> [inline-value]")
 		os.Exit(1)
 	}
 
@@ -36,47 +36,63 @@ func EditIssue(args []string) {
 		os.Exit(1)
 	}
 
-	cmd := exec.Command("gh", "issue", "view", issueNum,
-		"--repo", repo,
-		"--json", "title,body")
-
-	output, err := cmd.Output()
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error fetching issue: %v\n", err)
-		os.Exit(1)
-	}
-
-	var issueData struct {
-		Title string `json:"title"`
-		Body  string `json:"body"`
-	}
-
-	if err := json.Unmarshal(output, &issueData); err != nil {
-		fmt.Fprintf(os.Stderr, "Error parsing issue: %v\n", err)
-		os.Exit(1)
-	}
-
-	var currentContent string
 	var updateFlag string
-
 	switch field {
 	case "body":
-		currentContent = issueData.Body
 		updateFlag = "--body"
 	case "title":
-		currentContent = issueData.Title
 		updateFlag = "--title"
 	}
 
-	newContent, err := openEditorWithContent(currentContent)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error opening editor: %v\n", err)
-		os.Exit(1)
-	}
+	var newContent string
+	stat, _ := os.Stdin.Stat()
+	isPiped := (stat.Mode() & os.ModeCharDevice) == 0
 
-	if strings.TrimSpace(newContent) == strings.TrimSpace(currentContent) {
-		fmt.Println("No changes made")
-		return
+	if isPiped || inlineValue != "" {
+		newContent, err = GetContentFromInput(true, inlineValue, field)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Error getting content: %v\n", err)
+			os.Exit(1)
+		}
+	} else {
+		cmd := exec.Command("gh", "issue", "view", issueNum,
+			"--repo", repo,
+			"--json", "title,body")
+
+		output, err := cmd.Output()
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Error fetching issue: %v\n", err)
+			os.Exit(1)
+		}
+
+		var issueData struct {
+			Title string `json:"title"`
+			Body  string `json:"body"`
+		}
+
+		if err := json.Unmarshal(output, &issueData); err != nil {
+			fmt.Fprintf(os.Stderr, "Error parsing issue: %v\n", err)
+			os.Exit(1)
+		}
+
+		var currentContent string
+		switch field {
+		case "body":
+			currentContent = issueData.Body
+		case "title":
+			currentContent = issueData.Title
+		}
+
+		newContent, err = openEditorWithContent(currentContent)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Error opening editor: %v\n", err)
+			os.Exit(1)
+		}
+
+		if strings.TrimSpace(newContent) == strings.TrimSpace(currentContent) {
+			fmt.Println("No changes made")
+			return
+		}
 	}
 
 	updateCmd := exec.Command("gh", "issue", "edit", issueNum,

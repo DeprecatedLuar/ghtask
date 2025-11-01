@@ -10,12 +10,12 @@ import (
 	"github.com/DeprecatedLuar/ghtask/internal/github"
 )
 
-func CreateIssue(args []string, cmd string, openEditor bool) {
+func CreateIssue(args []string, cmd string, hasBody bool, bodyValue string) {
 	priority := ParsePriorityFromCommand(cmd)
 
 	if len(args) == 0 {
 		fmt.Fprintln(os.Stderr, "Error: issue title required")
-		fmt.Fprintf(os.Stderr, "Usage: %s <title> [--body]\n", cmd)
+		fmt.Fprintf(os.Stderr, "Usage: %s <title> [--body [inline-text]]\n", cmd)
 		os.Exit(1)
 	}
 
@@ -29,14 +29,10 @@ func CreateIssue(args []string, cmd string, openEditor bool) {
 	title := strings.Join(args, " ")
 	labels := "inbox," + priority
 
-	body := ""
-	if openEditor {
-		var err error
-		body, err = openEditorForBody()
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "Error opening editor: %v\n", err)
-			os.Exit(1)
-		}
+	body, err := GetContentFromInput(hasBody, bodyValue, "body")
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error getting body: %v\n", err)
+		os.Exit(1)
 	}
 
 	ghCmd := exec.Command("gh", "issue", "create",
@@ -53,35 +49,6 @@ func CreateIssue(args []string, cmd string, openEditor bool) {
 	}
 
 	fmt.Printf("Created: %s\n", strings.TrimSpace(string(output)))
-}
-
-func openEditorForBody() (string, error) {
-	editor := GetEditor()
-
-	tmpFile, err := os.CreateTemp("", "ghtask-body-*.md")
-	if err != nil {
-		return "", fmt.Errorf("failed to create temp file: %w", err)
-	}
-	tmpPath := tmpFile.Name()
-	tmpFile.Close()
-
-	defer os.Remove(tmpPath)
-
-	cmd := exec.Command(editor, tmpPath)
-	cmd.Stdin = os.Stdin
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-
-	if err := cmd.Run(); err != nil {
-		return "", fmt.Errorf("editor exited with error: %w", err)
-	}
-
-	content, err := os.ReadFile(tmpPath)
-	if err != nil {
-		return "", fmt.Errorf("failed to read temp file: %w", err)
-	}
-
-	return strings.TrimSpace(string(content)), nil
 }
 
 func GetEditor() string {

@@ -13,6 +13,22 @@ import (
 	"golang.org/x/term"
 )
 
+const (
+	// Display formatting
+	defaultTerminalWidth = 80  // Fallback terminal width when detection fails
+	minTitleWidth        = 40  // Minimum width for title column
+	issueNumReserved     = 7   // Reserved space for issue number column (#1234 + spacing)
+	issueNumWidth        = 5   // Width for issue number formatting (%-5d)
+	issueNumPadding      = 3   // Zero-padding width for verbose mode (03d)
+
+	// List fetching
+	maxIssueLimit = 1000 // Maximum number of issues to fetch from GitHub
+
+	// Color codes
+	colorBlackText = 0   // Black text for active issues
+	colorGrayZeros = 235 // Gray color for leading zeros in verbose mode
+)
+
 func ListIssues(args []string) {
 	verbose, filters := ParseVerboseFlag(args)
 
@@ -27,7 +43,7 @@ func ListIssues(args []string) {
 		"--repo", repo,
 		"--state", "open",
 		"--json", "number,title,labels,createdAt",
-		"--limit", "1000")
+		"--limit", fmt.Sprintf("%d", maxIssueLimit))
 
 	output, err := cmd.Output()
 	if err != nil {
@@ -116,7 +132,7 @@ func sortIssues(issues []internal.Issue) {
 func getTerminalWidth() int {
 	width, _, err := term.GetSize(int(os.Stdout.Fd()))
 	if err != nil {
-		return 80
+		return defaultTerminalWidth
 	}
 	return width
 }
@@ -140,7 +156,7 @@ func printIssue(issue internal.Issue, index int, verbose bool) {
 	reset := "\033[0m"
 
 	if active {
-		textColor = "\033[38;5;0m"
+		textColor = fmt.Sprintf("\033[38;5;%dm", colorBlackText)
 	}
 
 	title := issue.Title
@@ -148,11 +164,10 @@ func printIssue(issue internal.Issue, index int, verbose bool) {
 
 	if !verbose && isTerminal {
 		termWidth := getTerminalWidth()
-		reservedSpace := 7
 
-		availableWidth := termWidth - reservedSpace
-		if availableWidth < 40 {
-			availableWidth = 40
+		availableWidth := termWidth - issueNumReserved
+		if availableWidth < minTitleWidth {
+			availableWidth = minTitleWidth
 		}
 
 		title = truncateTitle(title, availableWidth)
@@ -160,11 +175,11 @@ func printIssue(issue internal.Issue, index int, verbose bool) {
 
 	var content string
 	if verbose {
-		paddedNum := fmt.Sprintf("%03d", issue.Number)
+		paddedNum := fmt.Sprintf("%0*d", issueNumPadding, issue.Number)
 		grayLeadingZeros := formatLeadingZeros(paddedNum, textColor)
 		content = fmt.Sprintf("[%s-%s]   %s", grayLeadingZeros, priority, title)
 	} else {
-		content = fmt.Sprintf("%-5d %s", issue.Number, title)
+		content = fmt.Sprintf("%-*d %s", issueNumWidth, issue.Number, title)
 	}
 
 	padding := ""
@@ -197,7 +212,7 @@ func getVisibleLength(s string) int {
 }
 
 func formatLeadingZeros(paddedNum string, mainColor string) string {
-	gray := "\033[38;5;235m"
+	gray := fmt.Sprintf("\033[38;5;%dm", colorGrayZeros)
 
 	isTerminal := term.IsTerminal(int(os.Stdout.Fd()))
 	if !isTerminal {
