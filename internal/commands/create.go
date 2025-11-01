@@ -4,10 +4,9 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
-	"runtime"
 	"strings"
 
-	"github.com/DeprecatedLuar/ghtask/internal/github"
+	"github.com/DeprecatedLuar/ghtask/internal"
 )
 
 func CreateIssue(args []string, cmd string, hasBody bool, bodyValue string) {
@@ -19,12 +18,7 @@ func CreateIssue(args []string, cmd string, hasBody bool, bodyValue string) {
 		os.Exit(1)
 	}
 
-	repo, err := github.GetRepoFromGit()
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
-		fmt.Fprintln(os.Stderr, "Make sure you're in a git repository with a GitHub remote")
-		os.Exit(1)
-	}
+	repo := internal.GetRepoOrDie()
 
 	title := strings.Join(args, " ")
 	labels := "inbox," + priority
@@ -49,22 +43,4 @@ func CreateIssue(args []string, cmd string, hasBody bool, bodyValue string) {
 	}
 
 	fmt.Printf("Created: %s\n", strings.TrimSpace(string(output)))
-}
-
-func GetEditor() string {
-	if editor := os.Getenv("EDITOR"); editor != "" {
-		return editor
-	}
-
-	if runtime.GOOS == "windows" {
-		return "notepad.exe"
-	}
-
-	for _, editor := range []string{"vim", "nano", "vi"} {
-		if _, err := exec.LookPath(editor); err == nil {
-			return editor
-		}
-	}
-
-	return "vi"
 }

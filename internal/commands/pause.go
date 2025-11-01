@@ -5,7 +5,7 @@ import (
 	"os"
 	"os/exec"
 
-	"github.com/DeprecatedLuar/ghtask/internal/github"
+	"github.com/DeprecatedLuar/ghtask/internal"
 )
 
 func PauseIssue(args []string) {
@@ -15,12 +15,7 @@ func PauseIssue(args []string) {
 		os.Exit(1)
 	}
 
-	repo, err := github.GetRepoFromGit()
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
-		fmt.Fprintln(os.Stderr, "Make sure you're in a git repository with a GitHub remote")
-		os.Exit(1)
-	}
+	repo := internal.GetRepoOrDie()
 
 	cmd := exec.Command("gh", "issue", "edit", issueNum,
 		"--repo", repo,

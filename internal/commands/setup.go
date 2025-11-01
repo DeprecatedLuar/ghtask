@@ -3,20 +3,14 @@ package commands
 import (
 	"encoding/json"
 	"fmt"
-	"os"
 	"os/exec"
 	"strings"
 
-	"github.com/DeprecatedLuar/ghtask/internal/github"
+	"github.com/DeprecatedLuar/ghtask/internal"
 )
 
 func SetupRepo() {
-	repo, err := github.GetRepoFromGit()
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
-		fmt.Fprintln(os.Stderr, "Make sure you're in a git repository with a GitHub remote")
-		os.Exit(1)
-	}
+	repo := internal.GetRepoOrDie()
 
 	fmt.Printf("Setting up labels for %s...\n", repo)
 

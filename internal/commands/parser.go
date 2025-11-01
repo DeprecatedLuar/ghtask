@@ -4,9 +4,10 @@ import (
 	"bufio"
 	"fmt"
 	"os"
-	"os/exec"
 	"strconv"
 	"strings"
+
+	"github.com/DeprecatedLuar/ghtask/internal"
 )
 
 // ParseVerboseFlag extracts verbose flag from args and returns (verbose, remainingArgs)
@@ -163,30 +164,5 @@ func readFromStdin() (string, error) {
 }
 
 func openEditorForContent(fieldName string) (string, error) {
-	editor := GetEditor()
-
-	tmpFile, err := os.CreateTemp("", "ghtask-"+fieldName+"-*.md")
-	if err != nil {
-		return "", fmt.Errorf("failed to create temp file: %w", err)
-	}
-	tmpPath := tmpFile.Name()
-	tmpFile.Close()
-
-	defer os.Remove(tmpPath)
-
-	cmd := exec.Command(editor, tmpPath)
-	cmd.Stdin = os.Stdin
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-
-	if err := cmd.Run(); err != nil {
-		return "", fmt.Errorf("editor exited with error: %w", err)
-	}
-
-	content, err := os.ReadFile(tmpPath)
-	if err != nil {
-		return "", fmt.Errorf("failed to read temp file: %w", err)
-	}
-
-	return strings.TrimSpace(string(content)), nil
+	return internal.OpenEditorWithContent("", fieldName)
 }

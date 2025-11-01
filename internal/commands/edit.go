@@ -7,7 +7,7 @@ import (
 	"os/exec"
 	"strings"
 
-	"github.com/DeprecatedLuar/ghtask/internal/github"
+	"github.com/DeprecatedLuar/ghtask/internal"
 )
 
 func EditIssue(args []string) {
@@ -29,12 +29,7 @@ func EditIssue(args []string) {
 		os.Exit(1)
 	}
 
-	repo, err := github.GetRepoFromGit()
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
-		fmt.Fprintln(os.Stderr, "Make sure you're in a git repository with a GitHub remote")
-		os.Exit(1)
-	}
+	repo := internal.GetRepoOrDie()
 
 	var updateFlag string
 	switch field {
@@ -83,7 +78,7 @@ func EditIssue(args []string) {
 			currentContent = issueData.Title
 		}
 
-		newContent, err = openEditorWithContent(currentContent)
+		newContent, err = internal.OpenEditorWithContent(currentContent, field)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Error opening editor: %v\n", err)
 			os.Exit(1)
@@ -105,39 +100,4 @@ func EditIssue(args []string) {
 	}
 
 	fmt.Printf("Updated %s for issue #%s\n", field, issueNum)
-}
-
-func openEditorWithContent(content string) (string, error) {
-	editor := GetEditor()
-
-	tmpFile, err := os.CreateTemp("", "ghtask-edit-*.md")
-	if err != nil {
-		return "", fmt.Errorf("failed to create temp file: %w", err)
-	}
-	tmpPath := tmpFile.Name()
-
-	if _, err := tmpFile.WriteString(content); err != nil {
-		tmpFile.Close()
-		os.Remove(tmpPath)
-		return "", fmt.Errorf("failed to write to temp file: %w", err)
-	}
-	tmpFile.Close()
-
-	defer os.Remove(tmpPath)
-
-	cmd := exec.Command(editor, tmpPath)
-	cmd.Stdin = os.Stdin
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-
-	if err := cmd.Run(); err != nil {
-		return "", fmt.Errorf("editor exited with error: %w", err)
-	}
-
-	editedContent, err := os.ReadFile(tmpPath)
-	if err != nil {
-		return "", fmt.Errorf("failed to read temp file: %w", err)
-	}
-
-	return strings.TrimSpace(string(editedContent)), nil
 }
