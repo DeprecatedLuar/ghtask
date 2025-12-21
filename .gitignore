@@ -5,6 +5,7 @@ build/
 
 # Ignore all files without extensions
 *
+
 !*/
 !*.*
 *.exe
@@ -48,3 +49,4 @@ implementation-history.md
 *doc.md
 doc.md
 README-*
+_*
